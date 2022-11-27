@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000
 // const { MongoClient, ServerApiVersion} = require('mongodb');
 require('dotenv').config()
@@ -18,21 +18,29 @@ async function run() {
     try {
         const productCategoryCollection = client.db('resaleMarket').collection('category')
         const productCollection = client.db('resaleMarket').collection('product')
+        const bookingCollection = client.db('resaleMarket').collection('booking')
+        const usersCollection = client.db('resaleMarket').collection('users')
 
-        app.get('/categories', async (req, res) => {
+        app.get('/category', async (req, res) => {
             const query = {}
             const cursor = productCategoryCollection.find(query)
             const category = await cursor.toArray()
             res.send(category);
         })
-
-        app.get('/product/:id', async (req, res) => {
+        app.get('/category/:id', async (req, res) => {
             const id = req.params.id;
-            const query = { Category_Id: Category_Id(id) }
+            const query = { category_id: (id) }
             const product = await productCollection.findOne(query)
 
             res.send(product);
 
+        })
+
+        app.get('/product', async (req, res) => {
+            const query = {}
+            const cursor = productCollection.find(query)
+            const products = await cursor.toArray()
+            res.send(products);
         })
 
         app.post('/product', async (req, res) => {
@@ -43,6 +51,25 @@ async function run() {
             res.send(result);
 
         })
+        // app.get('/product/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = { _id: ObjectId(id) }
+        //     const product = await productCollection.findOne(query)
+
+        //     res.send(product);
+        // })
+
+        app.post('/bookings', async (req, res) => {
+            const booking = req.body;
+            const result = await bookingCollection.insertOne(booking)
+
+            res.send(result);
+
+        })
+
+
+
+
     }
     finally {
 
