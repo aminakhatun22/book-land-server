@@ -99,6 +99,18 @@ async function run() {
 
         })
 
+        app.get('/myproduct', async (req, res) => {
+            let query = {}
+            if (req.query.email) {
+                query = {
+                    email: req.query.email
+                }
+            }
+            const cursor = productCollection.find(query)
+            const product = await cursor.toArray();
+            res.send(product)
+        })
+
         app.patch('/product/:id', async (req, res) => {
             const id = req.params.id;
             const status = req.body.status
