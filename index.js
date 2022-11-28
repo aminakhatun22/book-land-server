@@ -21,12 +21,17 @@ async function run() {
         const bookingCollection = client.db('resaleMarket').collection('booking')
         const usersCollection = client.db('resaleMarket').collection('users')
 
+
+        //category
+
+
         app.get('/category', async (req, res) => {
             const query = {}
             const cursor = productCategoryCollection.find(query)
             const category = await cursor.toArray()
             res.send(category);
         })
+
         app.get('/category/:id', async (req, res) => {
             const id = req.params.id;
             const query = { category_id: (id) }
@@ -35,6 +40,11 @@ async function run() {
             res.send(product);
 
         })
+
+
+
+        //product
+
 
         app.get('/product', async (req, res) => {
             const query = {}
@@ -51,13 +61,26 @@ async function run() {
             res.send(result);
 
         })
-        // app.get('/product/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const query = { _id: ObjectId(id) }
-        //     const product = await productCollection.findOne(query)
 
-        //     res.send(product);
-        // })
+        app.patch('/product/:id', async (req, res) => {
+            const id = req.params.id;
+            const status = req.body.status
+            const query = { _id: ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    status: status
+                }
+            }
+            const result = await productCollection.updateOne(query, updatedDoc);
+            res.send(result);
+        })
+
+
+
+
+
+
+        //booking
 
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
@@ -67,6 +90,7 @@ async function run() {
 
         })
 
+        //all user
 
         app.get('/users', async (req, res) => {
             const query = {}
@@ -78,6 +102,9 @@ async function run() {
             const result = await usersCollection.insertOne(user)
             res.send(result)
         })
+
+        //user admin
+
 
         app.get('/users/admin/:email', async (req, res) => {
             const email = req.params.email;
