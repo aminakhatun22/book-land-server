@@ -58,6 +58,19 @@ async function run() {
             res.status(403).send({ accessToken: '' })
         });
 
+        //verify Admin
+
+
+        const verfyAdmin = async (req, res, next) => {
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail };
+            const user = await usersCollection.findOne(query);
+
+            if (user?.role !== 'admin') {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+            next();
+        }
 
         //category
 
@@ -146,6 +159,10 @@ async function run() {
 
         })
 
+
+        // seller 
+
+
         //all user
 
         app.get('/users', async (req, res) => {
@@ -168,7 +185,7 @@ async function run() {
             const user = await usersCollection.findOne(query);
             res.send({ isAdmin: user?.role === 'admin' });
         })
-        app.put('/users/admin/:id', async (req, res) => {
+        app.put('/users/admin/:id', verifyJWT, verfyAdmin, async (req, res) => {
 
             const id = req.params.id
             const filter = { _id: ObjectId(id) }
