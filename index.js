@@ -63,16 +63,16 @@ async function run() {
         //verify Admin
 
 
-        // const verfyAdmin = async (req, res, next) => {
-        //     const decodedEmail = req.decoded.email;
-        //     const query = { email: decodedEmail };
-        //     const user = await usersCollection.findOne(query);
+        const verifyAdmin = async (req, res, next) => {
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail };
+            const user = await usersCollection.findOne(query);
 
-        //     if (user?.role !== 'admin') {
-        //         return res.status(403).send({ message: 'forbidden access' })
-        //     }
-        //     next();
-        // }
+            if (user?.role !== 'admin') {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+            next();
+        }
 
         //verify seller
 
@@ -204,6 +204,19 @@ async function run() {
             res.send({ isSeller: user?.role === 'Seller' });
         })
 
+        app.patch('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const status = req.body.status
+            const query = { _id: ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    status: status
+                }
+            }
+            const result = await usersCollection.updateOne(query, updatedDoc);
+            res.send(result);
+        })
+
         //buyer
 
 
@@ -228,6 +241,16 @@ async function run() {
             res.send(result)
         })
 
+        app.delete('/users/:id', async (req, res) => {
+            const id = req.params.id
+            console.log(id)
+            const query = { _id: ObjectId(id) }
+            const result = await usersCollection.deleteOne(query)
+
+            res.send(result);
+
+        })
+
         //user admin
 
 
@@ -238,7 +261,7 @@ async function run() {
             res.send({ isAdmin: user?.role === 'admin' });
         })
 
-        app.put('/users/admin/:id', verifyJWT, async (req, res) => {
+        app.put('/users/admin/:id', verifyJWT, verifyAdmin, async (req, res) => {
 
             const id = req.params.id
             const filter = { _id: ObjectId(id) }
