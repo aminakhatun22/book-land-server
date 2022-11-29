@@ -5,6 +5,7 @@ const app = express();
 const port = process.env.PORT || 5000
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
+const stripe = require("stripe")(process.env.SECRET_KEY)
 
 
 app.use(cors())
@@ -44,6 +45,7 @@ async function run() {
         const productCollection = client.db('resaleMarket').collection('product')
         const bookingCollection = client.db('resaleMarket').collection('booking')
         const usersCollection = client.db('resaleMarket').collection('users')
+        const paymentsCollection = client.db('resaleMarket').collection('payments')
 
 
         //jwt
@@ -61,16 +63,16 @@ async function run() {
         //verify Admin
 
 
-        const verfyAdmin = async (req, res, next) => {
-            const decodedEmail = req.decoded.email;
-            const query = { email: decodedEmail };
-            const user = await usersCollection.findOne(query);
+        // const verfyAdmin = async (req, res, next) => {
+        //     const decodedEmail = req.decoded.email;
+        //     const query = { email: decodedEmail };
+        //     const user = await usersCollection.findOne(query);
 
-            if (user?.role !== 'admin') {
-                return res.status(403).send({ message: 'forbidden access' })
-            }
-            next();
-        }
+        //     if (user?.role !== 'admin') {
+        //         return res.status(403).send({ message: 'forbidden access' })
+        //     }
+        //     next();
+        // }
 
         //verify seller
 
@@ -177,6 +179,14 @@ async function run() {
             res.send(bookings);
         })
 
+
+        app.get('/bookings/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const booking = await bookingCollection.findOne(query);
+            res.send(booking);
+        })
+
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
             const result = await bookingCollection.insertOne(booking)
@@ -227,7 +237,8 @@ async function run() {
             const user = await usersCollection.findOne(query);
             res.send({ isAdmin: user?.role === 'admin' });
         })
-        app.put('/users/admin/:id', verifyJWT, verfyAdmin, async (req, res) => {
+
+        app.put('/users/admin/:id', verifyJWT, async (req, res) => {
 
             const id = req.params.id
             const filter = { _id: ObjectId(id) }
@@ -239,6 +250,42 @@ async function run() {
             }
             const result = await usersCollection.updateOne(filter, updatedDoc, option)
             res.send(result)
+        })
+
+
+        //payment
+        app.post('/create-payment-intent', async (req, res) => {
+            const booking = req.body;
+            const price = booking.price;
+            const amount = price * 100;
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                currency: 'usd',
+                amount: amount,
+                "payment_method_types": [
+                    "card"
+                ]
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        });
+
+
+
+        app.post('/payments', async (req, res) => {
+            const payment = req.body;
+            const result = await paymentsCollection.insertOne(payment);
+            const id = payment.bookingId
+            const filter = { _id: ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
+            const updatedResult = await bookingCollection.updateOne(filter, updatedDoc)
+            res.send(result);
         })
 
 
