@@ -72,6 +72,19 @@ async function run() {
             next();
         }
 
+        //verify seller
+
+        // const verfySeller = async (req, res, next) => {
+        //     const decodedEmail = req.decoded.email;
+        //     const query = { email: decodedEmail };
+        //     const user = await usersCollection.findOne(query);
+
+        //     if (user?.role !== 'Seller') {
+        //         return res.status(403).send({ message: 'forbidden access' })
+        //     }
+        //     next();
+        // }
+
         //category
 
 
@@ -161,7 +174,12 @@ async function run() {
 
 
         // seller 
-
+        app.get('/users/seller/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email }
+            const user = await usersCollection.findOne(query);
+            res.send({ isSeller: user?.role === 'Seller' });
+        })
 
         //all user
 
