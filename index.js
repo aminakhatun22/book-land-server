@@ -86,21 +86,19 @@ async function run() {
             res.send(category);
         })
 
+
         app.get('/category/:id', async (req, res) => {
-            const id = req.params.id;
+            const id = req.params.id
             const query = { category_id: (id) }
-            const product = await productCollection.findOne(query)
-
-            res.send(product);
-
+            const cursor = productCollection.find(query)
+            const product = await cursor.toArray();
+            res.send(product)
         })
-
-
 
         //product
 
 
-        app.get('/product', async (req, res) => {
+        app.get('/product', verifyJWT, async (req, res) => {
             const query = {}
             const cursor = productCollection.find(query)
             const products = await cursor.toArray()
