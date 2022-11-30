@@ -183,7 +183,9 @@ async function run() {
         })
 
 
-        // seller 
+        // seller
+
+
         app.get('/users/seller/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email }
@@ -191,7 +193,26 @@ async function run() {
             res.send({ isSeller: user?.role === 'Seller' });
         })
 
-        app.patch('/users/:id', async (req, res) => {
+        app.get('/users/seller', async (req, res) => {
+            const role = "Seller"
+            console.log(role)
+            const query = { role: role }
+            const cursor = usersCollection.find(query)
+            const seller = await cursor.toArray();
+            res.send(seller)
+        })
+
+        app.delete('/users/seller/:id', async (req, res) => {
+            const id = req.params.id
+            console.log(id)
+            const query = { _id: ObjectId(id) }
+            const result = await usersCollection.deleteOne(query)
+
+            res.send(result);
+
+        })
+
+        app.patch('/users/seller/:id', async (req, res) => {
             const id = req.params.id;
             const status = req.body.status
             const query = { _id: ObjectId(id) }
@@ -204,6 +225,7 @@ async function run() {
             res.send(result);
         })
 
+
         //buyer
 
 
@@ -212,6 +234,26 @@ async function run() {
             const query = { email }
             const user = await usersCollection.findOne(query);
             res.send({ isBuyer: user?.role === 'Buyer' });
+        })
+
+
+        app.get('/users/buyer', async (req, res) => {
+            const role = "Buyer"
+            console.log(role)
+            const query = { role: role }
+            const cursor = usersCollection.find(query)
+            const buyer = await cursor.toArray();
+            res.send(buyer)
+        })
+
+        app.delete('/users/buyer/:id', async (req, res) => {
+            const id = req.params.id
+            console.log(id)
+            const query = { _id: ObjectId(id) }
+            const result = await usersCollection.deleteOne(query)
+
+            res.send(result);
+
         })
 
 
@@ -228,15 +270,6 @@ async function run() {
             res.send(result)
         })
 
-        app.delete('/users/:id', async (req, res) => {
-            const id = req.params.id
-            console.log(id)
-            const query = { _id: ObjectId(id) }
-            const result = await usersCollection.deleteOne(query)
-
-            res.send(result);
-
-        })
 
         //user admin
 
@@ -248,19 +281,6 @@ async function run() {
             res.send({ isAdmin: user?.role === 'admin' });
         })
 
-        app.put('/users/admin/:id', verifyJWT, verifyAdmin, async (req, res) => {
-
-            const id = req.params.id
-            const filter = { _id: ObjectId(id) }
-            const option = { upsert: true }
-            const updatedDoc = {
-                $set: {
-                    role: 'admin'
-                }
-            }
-            const result = await usersCollection.updateOne(filter, updatedDoc, option)
-            res.send(result)
-        })
 
 
         //payment
