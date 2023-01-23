@@ -81,9 +81,20 @@ async function run() {
 
         app.get('/category', async (req, res) => {
             const query = {}
+            const cursor = productCategoryCollection.limit(4).find(query)
+            const category = await cursor.toArray()
+            res.send(category);
+        })
+        app.get('/categories', async (req, res) => {
+            const query = {}
             const cursor = productCategoryCollection.find(query)
             const category = await cursor.toArray()
             res.send(category);
+        })
+        app.post('/category', async (req, res) => {
+            const category = req.body;
+            const result = await productCategoryCollection.insertOne(category)
+            res.send(result);
         })
 
 
@@ -98,7 +109,13 @@ async function run() {
         //product
 
 
-        app.get('/product', verifyJWT, async (req, res) => {
+        app.get('/product', async (req, res) => {
+            const query = {}
+            const cursor = productCollection.find(query)
+            const products = await cursor.limit(3).toArray()
+            res.send(products);
+        })
+        app.get('/products', async (req, res) => {
             const query = {}
             const cursor = productCollection.find(query)
             const products = await cursor.toArray()
